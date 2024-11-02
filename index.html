@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <style>
+        #playPauseButtonContainer {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 999;
+            text-align: center;
+        }
+        #playPauseButton {
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #FFD700;
+            color: #000;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+            border: none;
+        }
+        .a-enter-vr-button {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Play/Pause Button -->
+    <div id="playPauseButtonContainer">
+        <button id="playPauseButton">Play with Audio</button>
+    </div>
+
+    <!-- AR Scene -->
+    <a-scene
+        mindar-image="imageTargetSrc: ./targets.mind"
+        color-space="sRGB"
+        renderer="colorManagement: true, physicallyCorrectLights"
+        vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: false">
+
+        <a-assets>
+            <!-- Only the Gold Ring Video -->
+            <video id="goldRingVideo" src="palada.mp4" playsinline loop></video>
+            <img id="logoImage" src="4k.png" />
+        </a-assets>
+
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+        <!-- Target -->
+        <a-entity id="target1" mindar-image-target="targetIndex: 0">
+            <a-image src="#logoImage" position="0 1 .1" width=".9" height=".8"></a-image>
+            <!-- Adjusted width and height for 2288 x 3448 aspect ratio -->
+            <a-plane id="videoDisplay" position="0 0 0" height="1.5" width="1" material="src: #goldRingVideo"></a-plane>
+        </a-entity>
+    </a-scene>
+
+    <script>
+        const playPauseButton = document.querySelector('#playPauseButton');
+        const videoElement = document.querySelector('#goldRingVideo');
+        let isPlaying = false;
+        let targetVisible = false;
+
+        // Play/Pause functionality
+        playPauseButton.addEventListener('click', () => {
+            if (videoElement && targetVisible) {
+                if (isPlaying) {
+                    videoElement.pause();
+                    playPauseButton.textContent = 'Play with Audio';
+                } else {
+                    videoElement.play();
+                    playPauseButton.textContent = 'Pause';
+                }
+                isPlaying = !isPlaying;
+            }
+        });
+
+        // Handle target found and lost events
+        const target1 = document.querySelector('#target1');
+
+        target1.addEventListener('targetFound', () => {
+            targetVisible = true;
+            playPauseButton.textContent = isPlaying ? 'Pause' : 'Play with Audio';
+        });
+
+        target1.addEventListener('targetLost', () => {
+            targetVisible = false;
+            videoElement.pause();
+            isPlaying = false;
+            playPauseButton.textContent = 'Play with Audio';
+        });
+    </script>
+</body>
+</html>
